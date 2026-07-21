@@ -37,30 +37,33 @@ void setup() {
     BP32.setup(&OnConnectedGamepad, &OnDisconnectedGamepad);
 }
 
+unsigned long lastUpdate = 0;
 void loop() {
     BP32.update();
 
-    if (gamepad && gamepad->isConnected()) {
-        int leftY = -(gamepad->axisY());
-        int leftX = gamepad->axisX();
-        
-        float turn = mapFloat(leftX, -512, 512, -0.2f, 0.2f);
+    if (millis() - lastUpdate >= 20) {
+        lastUpdate = millis();
 
-        if (leftY > 150 || leftX > 50 || leftX < -50) {
-            float t = millis() / 1000.0;
+        if (gamepad && gamepad->isConnected()) {
+            int leftY = -(gamepad->axisY());
+            int leftX = gamepad->axisX();
+            
+            float turn = mapFloat(leftX, -512, 512, -0.2f, 0.2f);
 
-            for (int i = 0; i < segments; i++) {
-                float angle = amplitude * sin(2 * PI * frequency * t + i * phaseOffset) + turn;
-                float degrees = angle * 180.0 / 3.14159;
-                int steps = DegreesToSteps(degrees);
-                servos.WritePosEx(i, steps, 0, 0);
+            if (leftY > 150 || leftX > 350 || leftX < -350) {
+                float t = millis() / 1000.0;
+
+                for (int i = 0; i < segments; i++) {
+                    float angle = amplitude * sin(2 * PI * frequency * t + i * phaseOffset) + turn;
+                    float degrees = angle * 180.0 / 3.14159;
+                    int steps = DegreesToSteps(degrees);
+                    servos.WritePosEx(i, steps, 0, 0);
+                }
             }
+
+            Serial.print(leftX);
+            Serial.print(", ");
+            Serial.println(turn);
         }
-
-        Serial.print(leftX);
-        Serial.print(", ");
-        Serial.println(turn);
     }
-
-    delay(20);
 }
