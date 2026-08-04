@@ -5,7 +5,7 @@
 #define amplitude 0.5
 #define frequency 0.8
 #define phaseOffset PI
-#define segments 2
+#define segments 4
 
 SMS_STS servos;
 GamepadPtr gamepad;
