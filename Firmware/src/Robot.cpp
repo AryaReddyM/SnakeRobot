@@ -2,16 +2,18 @@
 #include <SCServo.h>
 #include <Bluepad32.h>
 
-#define amplitude 0.5
-#define frequency 0.8
-#define phaseOffset PI
+#define amplitude 0.35
+#define frequency 0.6
 #define segments 4
+#define phaseOffset (2 * PI / segments)
 
 SMS_STS servos;
 GamepadPtr gamepad;
 
+int servoCenters[segments];
+
 int DegreesToSteps(float degrees) {
-    return 2048 + (int)(degrees * 4096.0f / 360.0f);
+    return (int)(degrees * 4096.0f / 360.0f);
 }
 
 float mapFloat(float x, float inMin, float inMax, float outMin, float outMax) {
@@ -19,13 +21,19 @@ float mapFloat(float x, float inMin, float inMax, float outMin, float outMax) {
 }
 
 void OnConnectedGamepad(GamepadPtr gp) {
-  Serial.println("Gamepad connected");
-  gamepad = gp;
+    Serial.println("Gamepad connected");
+    gamepad = gp;
 }
 
 void OnDisconnectedGamepad(GamepadPtr gp) {
-  Serial.println("Gamepad disconnected");
-  gamepad = nullptr;
+    Serial.println("Gamepad disconnected");
+    gamepad = nullptr;
+}
+
+void calibrateCenters() {
+    for (int i = 0; i < segments; i++) {
+        servoCenters[i] = 862;
+    }
 }
 
 void setup() {
@@ -33,7 +41,9 @@ void setup() {
     Serial2.begin(1000000, SERIAL_8N1, 22, 21);
     delay(500);
     servos.pSerial = &Serial2;
-    
+
+    calibrateCenters();
+
     BP32.setup(&OnConnectedGamepad, &OnDisconnectedGamepad);
 }
 
@@ -41,13 +51,17 @@ unsigned long lastUpdate = 0;
 void loop() {
     BP32.update();
 
-    if (millis() - lastUpdate >= 20) {
-        lastUpdate = millis();
+    if (gamepad && gamepad->isConnected()) {
+        if (gamepad->a()) {
+            calibrateCenters();
+        }
 
-        if (gamepad && gamepad->isConnected()) {
+        if (millis() - lastUpdate >= 20) {
+            lastUpdate = millis();
+
             int leftY = -(gamepad->axisY());
             int leftX = gamepad->axisX();
-            
+
             float turn = mapFloat(leftX, -512, 512, -0.2f, 0.2f);
 
             if (leftY > 150 || leftX > 350 || leftX < -350) {
@@ -56,14 +70,10 @@ void loop() {
                 for (int i = 0; i < segments; i++) {
                     float angle = amplitude * sin(2 * PI * frequency * t + i * phaseOffset) + turn;
                     float degrees = angle * 180.0 / 3.14159;
-                    int steps = DegreesToSteps(degrees);
+                    int steps = servoCenters[i] + DegreesToSteps(degrees);
                     servos.WritePosEx(i, steps, 0, 0);
                 }
             }
-
-            Serial.print(leftX);
-            Serial.print(", ");
-            Serial.println(turn);
         }
     }
 }
