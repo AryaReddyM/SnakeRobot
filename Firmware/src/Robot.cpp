@@ -2,10 +2,12 @@
 #include <SCServo.h>
 #include <Bluepad32.h>
 
-#define amplitude 0.35
 #define frequency 0.6
 #define segments 4
 #define phaseOffset (2 * PI / segments)
+
+#define servoMax 1758
+#define servoMin 1092
 
 SMS_STS servos;
 GamepadPtr gamepad;
@@ -32,7 +34,7 @@ void OnDisconnectedGamepad(GamepadPtr gp) {
 
 void calibrateCenters() {
     for (int i = 0; i < segments; i++) {
-        servoCenters[i] = 862;
+        servoCenters[i] = (servoMax + servoMin) / 2;
     }
 }
 
@@ -62,17 +64,22 @@ void loop() {
             int leftY = -(gamepad->axisY());
             int leftX = gamepad->axisX();
 
-            float turn = mapFloat(leftX, -512, 512, -0.2f, 0.2f);
+            float turn = mapFloat(leftX, -512, 512, -0.2f, 0.2f);\
+            float turnSteps = DegreesToSteps(turn * 180.0 / PI);
 
             if (leftY > 150 || leftX > 350 || leftX < -350) {
                 float t = millis() / 1000.0;
 
                 for (int i = 0; i < segments; i++) {
-                    float angle = amplitude * sin(2 * PI * frequency * t + i * phaseOffset) + turn;
-                    float degrees = angle * 180.0 / 3.14159;
-                    int steps = servoCenters[i] + DegreesToSteps(degrees);
-                    servos.WritePosEx(i, steps, 0, 0);
+                    float wave = sin(2 * PI * frequency * t + i * phaseOffset);
+                    float waveSteps = mapFloat(wave, -1.0f, 1.0f, (float)servoMin, (float)servoMax);
+
+                    int target = constrain(waveSteps, servoMin, servoMax);
+
+                    servos.WritePosEx(i, target, 0, 0);
                 }
+                
+                Serial.println(servos.ReadPos(0));
             }
         }
     }
