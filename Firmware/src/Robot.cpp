@@ -6,8 +6,8 @@
 #define segments 4
 #define phaseOffset (2 * PI / segments)
 
-#define servoMax 1758
-#define servoMin 1092
+#define servoMax 1650
+#define servoMin 1250
 
 SMS_STS servos;
 GamepadPtr gamepad;
@@ -50,6 +50,7 @@ void setup() {
 }
 
 unsigned long lastUpdate = 0;
+unsigned long lastRead = 0;
 void loop() {
     BP32.update();
 
@@ -64,7 +65,7 @@ void loop() {
             int leftY = -(gamepad->axisY());
             int leftX = gamepad->axisX();
 
-            float turn = mapFloat(leftX, -512, 512, -0.2f, 0.2f);\
+            float turn = mapFloat(leftX, -512, 512, -0.2f, 0.2f);
             float turnSteps = DegreesToSteps(turn * 180.0 / PI);
 
             if (leftY > 150 || leftX > 350 || leftX < -350) {
@@ -74,12 +75,21 @@ void loop() {
                     float wave = sin(2 * PI * frequency * t + i * phaseOffset);
                     float waveSteps = mapFloat(wave, -1.0f, 1.0f, (float)servoMin, (float)servoMax);
 
-                    int target = constrain(waveSteps, servoMin, servoMax);
+                    int target = constrain(waveSteps + turnSteps, servoMin, servoMax);
 
                     servos.WritePosEx(i, target, 0, 0);
                 }
                 
                 Serial.println(servos.ReadPos(0));
+            }
+        }
+
+        if (millis() - lastRead >= 503) {
+            lastRead = millis();
+            
+            if (millis() - lastUpdate > 5) {
+                int pos = servos.ReadPos(0);
+                if (pos >= 0) Serial.println(pos);
             }
         }
     }
