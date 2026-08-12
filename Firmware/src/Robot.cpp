@@ -2,8 +2,8 @@
 #include <SCServo.h>
 #include <Bluepad32.h>
 
-#define frequency 0.6
-#define segments 4
+#define frequency 1.0
+#define segments 6
 #define phaseOffset (2 * PI / segments)
 
 #define servoMax 1650
@@ -45,6 +45,10 @@ void setup() {
     servos.pSerial = &Serial2;
 
     calibrateCenters();
+    for (int i = 0; i < segments; i++) {
+        servos.WritePosEx(i, (servoMax + servoMin) / 2, 0, 0);
+        delay(500);
+    }
 
     BP32.setup(&OnConnectedGamepad, &OnDisconnectedGamepad);
 }
