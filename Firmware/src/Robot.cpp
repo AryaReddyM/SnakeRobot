@@ -12,8 +12,6 @@
 SMS_STS servos;
 GamepadPtr gamepad;
 
-int servoCenters[segments];
-
 int DegreesToSteps(float degrees) {
     return (int)(degrees * 4096.0f / 360.0f);
 }
@@ -34,7 +32,8 @@ void OnDisconnectedGamepad(GamepadPtr gp) {
 
 void calibrateCenters() {
     for (int i = 0; i < segments; i++) {
-        servoCenters[i] = (servoMax + servoMin) / 2;
+        servos.WritePosEx(i, (servoMax + servoMin) / 2, 0, 0);
+        delay(500);
     }
 }
 
@@ -45,10 +44,6 @@ void setup() {
     servos.pSerial = &Serial2;
 
     calibrateCenters();
-    for (int i = 0; i < segments; i++) {
-        servos.WritePosEx(i, (servoMax + servoMin) / 2, 0, 0);
-        delay(500);
-    }
 
     BP32.setup(&OnConnectedGamepad, &OnDisconnectedGamepad);
 }
