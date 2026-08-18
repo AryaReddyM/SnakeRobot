@@ -2,7 +2,7 @@
 #include <SCServo.h>
 #include <Bluepad32.h>
 
-#define frequency 1.0
+#define frequency 1.2
 #define segments 6
 #define phaseOffset (2 * PI / segments)
 
