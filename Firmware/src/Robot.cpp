@@ -2,19 +2,16 @@
 #include <SCServo.h>
 #include <Bluepad32.h>
 
-#define frequency 1.2
+#define frequency 0.8
 #define segments 6
 #define phaseOffset (2 * PI / segments)
 
 #define servoMax 1650
 #define servoMin 1250
+#define range ((servoMax - servoMin) / 2)
 
 SMS_STS servos;
 GamepadPtr gamepad;
-
-int DegreesToSteps(float degrees) {
-    return (int)(degrees * 4096.0f / 360.0f);
-}
 
 float mapFloat(float x, float inMin, float inMax, float outMin, float outMax) {
     return (x - inMin) / (inMax - inMin) * (outMax - outMin) + outMin;
@@ -64,28 +61,29 @@ void loop() {
             int leftY = -(gamepad->axisY());
             int leftX = gamepad->axisX();
 
-            float turn = mapFloat(leftX, -512, 512, -0.2f, 0.2f);
-            float turnSteps = DegreesToSteps(turn * 180.0 / PI);
+            float offset = 0;
+            if (abs(leftX) > 250) {
+                offset = mapFloat(leftX, -512, 512, -120, 120);
+            }
 
             if (leftY > 150 || leftX > 350 || leftX < -350) {
                 float t = millis() / 1000.0;
 
                 for (int i = 0; i < segments; i++) {
                     float wave = sin(2 * PI * frequency * t + i * phaseOffset);
-                    float waveSteps = mapFloat(wave, -1.0f, 1.0f, (float)servoMin, (float)servoMax);
 
-                    int target = constrain(waveSteps + turnSteps, servoMin, servoMax);
+                    float jointOffset = offset * (float)(segments - i) / segments;
+                    float amp = range - fabs(jointOffset);
+                    int target = (int)((servoMin + servoMax)/2 + jointOffset + wave * amp);
 
-                    servos.WritePosEx(i, target, 0, 0);
+                    servos.WritePosEx(i, target, 2000, 200);
                 }
-                
-                Serial.println(servos.ReadPos(0));
             }
         }
 
         if (millis() - lastRead >= 503) {
             lastRead = millis();
-            
+
             if (millis() - lastUpdate > 5) {
                 int pos = servos.ReadPos(0);
                 if (pos >= 0) Serial.println(pos);
