@@ -74,7 +74,7 @@ void loop() {
 
                     float jointOffset = offset * (float)(segments - i) / segments;
                     float amp = range - fabs(jointOffset);
-                    int target = (int)((servoMin + servoMax)/2 + jointOffset + wave * amp);
+                    int target = (int)((servoMin + servoMax) / 2 + jointOffset + wave * amp);
 
                     servos.WritePosEx(i, target, 2000, 200);
                 }
