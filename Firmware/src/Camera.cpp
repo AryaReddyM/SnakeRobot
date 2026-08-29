@@ -3,8 +3,8 @@
 #include <WiFi.h>
 #include "esp_http_server.h"
 
-const char* ssid = "";
-const char* password = "";
+const char* ssid = "Fios-2c3PM";
+const char* password = "ink565jag85coop";
 
 #define PWDN_PIN     32
 #define RST_PIN      -1
