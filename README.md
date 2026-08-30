@@ -26,7 +26,7 @@ I chose this form factor because I thought snake robots would be better suited f
 
 ## How it works
 
-Six servos are chained on a single TTL bus. Each servo sets the angle between two adjacent shells, so the robot has no absolute heading control — only relative joint angles. Forward motion comes from propagating a sine wave down the body:
+Six servos are chained on a single TTL bus. Each servo sets the angle between two adjacent shells. Forward motion comes from propagating a sine wave down the body:
 
 ```
 target[i] = center + amplitude × sin(2π·f·t + i·φ)
