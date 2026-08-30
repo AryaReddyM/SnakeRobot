@@ -34,7 +34,9 @@ target[i] = center + amplitude × sin(2π·f·t + i·φ)
 
 with a phase offset of `φ = 2π/N`, producing one full wave along the body.
 
-![](Media/Position1.png) | ![](Media/Position2.png) | ![](Media/Position3.png)
+| | | |
+|---|---|---|
+| ![](Media/Position1.png) | ![](Media/Position2.png) | ![](Media/Position3.png) |
 
 Steering applies a per-joint offset that biases the wave's center, bending the body into an arc that the wave then travels along.
 
